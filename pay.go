@@ -73,9 +73,9 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 	logger.Info(values)
 
 	pr.Sign = chars.ToString(values["sign"])
-	sign := NewSign(key, values)
+	sign := NewSign(key)
 	delete(values, "sign")
-	if pr.Sign != sign.ToSign() {
+	if pr.Sign != sign.ToSign(values) {
 		logger.Error(values, pr.Sign)
 		return fmt.Errorf("sign 验证不通过")
 	}
@@ -87,8 +87,13 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 	data := chars.ToString(values["data"])
 	logger.Info(data)
 
-	aes := NewAES(key, data)
-	m := aes.Decrypt()
+	aes := NewAES(key)
+	m, err := aes.Decrypt(data)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
 	logger.Info(m)
 
 	pr.Data.PmtTag = chars.ToString(m["pmt_tag"])
@@ -140,16 +145,20 @@ func (c *Client) PayOrder(req PayRequest) (payResp PayResponse, err error) {
 		m["limit_pay"] = "no_credit"
 	}
 
-	aes := NewAES(c.openKey, m)
-	data, _ := aes.Encrypt()
+	aes := NewAES(c.openKey)
+	data, err := aes.Encrypt(m)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
 
 	d := make(map[string]interface{})
 	d["data"] = data
 	d["open_id"] = c.openID
 	d["timestamp"] = chars.ToString(time.Now().Unix())
 
-	sign := NewSign(c.openKey, d)
-	d["sign"] = sign.ToSign()
+	sign := NewSign(c.openKey)
+	d["sign"] = sign.ToSign(d)
 
 	resp := make(map[string]interface{})
 	err = httplib.PostForm(fmt.Sprintf("%s%s", c.BaseURL(), "payorder"), c.format(d), &resp,

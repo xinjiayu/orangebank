@@ -19,8 +19,8 @@ func (c *Client) ConfigAdd(req ConfigRequest) (err error) {
 	m["pmt_tag"] = req.PmtTag.ToString(c.env)
 	m["sub_appid"] = req.SubAppID
 
-	aes := NewAES(c.openKey, m)
-	data, err := aes.Encrypt()
+	aes := NewAES(c.openKey)
+	data, err := aes.Encrypt(m)
 	if err != nil {
 		logger.Error(err.Error())
 		return
@@ -31,8 +31,8 @@ func (c *Client) ConfigAdd(req ConfigRequest) (err error) {
 	d["timestamp"] = chars.ToString(time.Now().Unix())
 	d["open_id"] = c.openID
 
-	sign := NewSign(c.openKey, d)
-	d["sign"] = sign.ToSign()
+	sign := NewSign(c.openKey)
+	d["sign"] = sign.ToSign(d)
 
 	resp := make(map[string]interface{})
 	err = httplib.PostForm(fmt.Sprintf("%s%s", c.BaseURL(), "mpconfig/add"), c.format(d),

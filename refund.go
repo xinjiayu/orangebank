@@ -24,6 +24,13 @@ type RefundRequest struct {
 }
 
 type RefundResp struct {
+	ErrCode   int
+	TimeStamp int64
+	Msg       string
+	Data      RefundData
+}
+
+type RefundData struct {
 	OrdNo         string
 	OrdShopID     int
 	OrdMctID      int
@@ -37,30 +44,60 @@ type RefundResp struct {
 	TradeTime     string
 }
 
-func (rr *RefundResp)parse(key string, values map[string]interface{})(err error){
+func (rr *RefundResp) parse(privateKey []byte, values map[string]interface{}) (err error) {
+	logger.Info(values)
+
+	rr.ErrCode = chars.ToInt(values["errcode"])
+	rr.Msg = chars.ToString(values["msg"])
+	rr.TimeStamp = int64(chars.ToInt(values["timestamp"]))
+
+	data := chars.ToString(values["data"])
+	logger.Info(data)
+
+	rsa := NewRSA(nil, privateKey)
+	m, err := rsa.Decrypt(data)
+	if err != nil {
+		logger.Error(m)
+		return
+	}
+
+	logger.Info(m)
+
+	rr.Data.OrdMctID = chars.ToInt(m["ord_mch_id"])
+	rr.Data.OrdShopID = chars.ToInt(m["ord_shop_id"])
+	rr.Data.OrdNo = chars.ToString(m["ord_no"])
+	rr.Data.OrdCurrency = chars.ToString(m["ord_currency"])
+	rr.Data.TradeAmount = chars.ToInt(m["trade_amount"])
+	rr.Data.TradeResult = chars.ToString(m["trade_result"])
+	rr.Data.Status = chars.ToInt(m["status"])
 
 	return
 }
 
-
-
 func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error) {
 	m := make(map[string]interface{})
 	m["out_no"] = req.OutNo
+	m["refund_out_no"] = req.RefundOutNo
+	m["refund_ord_name"] = req.RefundOutName
+	m["refund_amount"] = req.RefundAmount
 	m["trade_account"] = req.TradeAccount
-	m["trade_no"] = req.TradeNo
+	m["trade_result"] = req.TradeResult
+	m["tml_token"] = req.TmlToken
 	m["remark"] = req.Remark
+	m["shop_pass"] = req.ShopPass
 
-	aes := NewAES(c.openKey, m)
-	data, _ := aes.Encrypt()
+	rsa := NewRSA(c.publicKey, c.privateKey)
+	data, err := rsa.Encrypt(m)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
 
 	d := make(map[string]interface{})
 	d["data"] = data
 	d["open_id"] = c.openID
 	d["timestamp"] = chars.ToString(time.Now().Unix())
-
-	sign := NewSign(c.openKey, d)
-	d["sign"] = sign.ToSign()
+	d["sign_type"] = "RSA"
 
 	resp := make(map[string]interface{})
 	err = httplib.PostForm(fmt.Sprintf("%s%s", c.BaseURL(), "payorder"), c.format(d), &resp,
@@ -70,7 +107,7 @@ func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error)
 		return
 	}
 
-	err = refundResp.parse(c.openKey, resp)
+	err = refundResp.parse(c.privateKey, resp)
 	if err != nil {
 		logger.Error(err.Error())
 		return

@@ -16,23 +16,21 @@ import (
 //Sign 签名
 type Sign struct {
 	OpenKey string
-	Values  map[string]interface{}
 }
 
 //NewSign 初始化
-func NewSign(openKey string, values map[string]interface{}) *Sign {
+func NewSign(openKey string) *Sign {
 	return &Sign{
 		OpenKey: openKey,
-		Values:  values,
 	}
 }
 
 //ToSign 签名
-func (s Sign) ToSign() string {
-	s.Values["open_key"] = s.OpenKey
+func (s Sign) ToSign(Values map[string]interface{}) string {
+	Values["open_key"] = s.OpenKey
 
 	var keys []string
-	for k := range s.Values {
+	for k := range Values {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -40,10 +38,10 @@ func (s Sign) ToSign() string {
 	var str string
 	for k, v := range keys {
 		if k == 0 {
-			str = fmt.Sprintf("%s=%v", v, s.Values[v])
+			str = fmt.Sprintf("%s=%v", v, Values[v])
 			continue
 		}
-		str = fmt.Sprintf("%s&%s=%v", str, v, s.Values[v])
+		str = fmt.Sprintf("%s&%s=%v", str, v, Values[v])
 	}
 
 	s1 := sha1.New()
@@ -53,7 +51,7 @@ func (s Sign) ToSign() string {
 	m5 := md5.New()
 	io.WriteString(m5, hex.EncodeToString(s1Sign))
 
-	delete(s.Values, "open_key")
+	delete(Values, "open_key")
 
 	logger.Info(str, hex.EncodeToString(s1Sign), hex.EncodeToString(m5.Sum(nil)))
 
@@ -61,30 +59,23 @@ func (s Sign) ToSign() string {
 
 }
 
+//AES AES加密
 type AES struct {
 	OpenKey string
-	Values  map[string]interface{}
 }
 
-func NewAES(openKey string, values interface{}) *AES {
-	v, ok := values.(map[string]interface{})
-	if !ok {
-		v = make(map[string]interface{})
-		if text, ok := values.(string); ok {
-			v["cipherText"] = text
-		}
-	}
-
+//NewAES 初始化
+func NewAES(openKey string) *AES {
 	return &AES{
 		OpenKey: openKey,
-		Values:  v,
 	}
 }
 
-func (aes *AES) Encrypt() (data string, err error) {
-	logger.Info(aes.Values)
+//Encrypt 加密
+func (aes *AES) Encrypt(Values map[string]interface{}) (data string, err error) {
+	logger.Info(Values)
 
-	text, err := json.Marshal(aes.Values)
+	text, err := json.Marshal(Values)
 	if err != nil {
 		logger.Error(err.Error())
 		return
@@ -104,32 +95,85 @@ func (aes *AES) Encrypt() (data string, err error) {
 	return
 }
 
-func (aes *AES) Decrypt() map[string]interface{} {
-	text, ok := aes.Values["cipherText"].(string)
-	if !ok || text == "" {
-		return nil
-	}
-
-	bts, err := hex.DecodeString(text)
+//Decrypt 解密
+func (aes *AES) Decrypt(cipherText string) (map[string]interface{}, error) {
+	bts, err := hex.DecodeString(cipherText)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil
+		return nil, err
 	}
 
 	data, err := encrypt.AesECBDecrypt(string(bts), aes.OpenKey)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil
+		return nil, err
 	}
-
-	logger.Info(string(data))
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(data, &m)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil
+		return nil, err
 	}
 
-	return m
+	return m, nil
+}
+
+//RSA RSA
+type RSA struct {
+	publicKey  []byte
+	privateKey []byte
+}
+
+//NewRSA RSA类初始化
+func NewRSA(publicKey, privateKey []byte) *RSA {
+	return &RSA{
+		publicKey:  publicKey,
+		privateKey: privateKey,
+	}
+}
+
+func (rsa *RSA) Encrypt(Values map[string]interface{}) (data string, err error) {
+	var keys []string
+	for k := range Values {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var str string
+	for k, v := range keys {
+		if k == 0 {
+			str = fmt.Sprintf("%s=%v", v, Values[v])
+			continue
+		}
+		str = fmt.Sprintf("%s&%s=%v", str, v, Values[v])
+	}
+
+	cipherText, err := encrypt.RsaEncrypt([]byte(str), rsa.publicKey)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	return hex.EncodeToString(cipherText), nil
+}
+
+func (rsa *RSA) Decrypt(cipherText string) (data map[string]interface{}, err error) {
+	plainText, err := encrypt.RsaDecrypt([]byte(cipherText), rsa.privateKey)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	logger.Info(string(plainText))
+
+	err = json.Unmarshal(plainText, &data)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	logger.Info(data)
+
+	return
 }

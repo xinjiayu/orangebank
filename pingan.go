@@ -8,13 +8,18 @@ type Client struct {
 	openID  string
 	openKey string
 	env     Env
+
+	publicKey  []byte
+	privateKey []byte
 }
 
-func NewClient(openID, openKey string, env Env) *Client {
+func NewClient(openID, openKey string, env Env, publicKey, privateKey []byte) *Client {
 	return &Client{
-		openID:  openID,
-		openKey: openKey,
-		env:     env,
+		openID:     openID,
+		openKey:    openKey,
+		env:        env,
+		publicKey:  publicKey,
+		privateKey: privateKey,
 	}
 }
 

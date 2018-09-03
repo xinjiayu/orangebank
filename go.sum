@@ -15,14 +15,8 @@ github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/vgmdj/gb2260 v0.0.0-20180621064901-26fbcc4a270b h1:yIFvivrQ8I3ccCaTVi/Xg9UIgTc89EYe1rNKWU4GpCw=
 github.com/vgmdj/gb2260 v0.0.0-20180621064901-26fbcc4a270b/go.mod h1:EEzY1HuRtztfQ3pjZLooEoJaQP+MyIJorzcwtI5eLTg=
-github.com/vgmdj/utils v0.0.0-20180831013606-a84e8fdd3ceb h1:/rq1y41rVrL5tAtxh7AkcmKu8MuMFe/MYEyeDAfl1iw=
-github.com/vgmdj/utils v0.0.0-20180831013606-a84e8fdd3ceb/go.mod h1:4N+hRsVxde6uc6Q4KPsi9mqId5HWSrqZvRI5OVt50Os=
-github.com/vgmdj/utils v0.0.0-20180831013845-ab3d43099570 h1:7cXUo6opSUTchXlc06t1Sq1Tbu86MSjeEh4BKqaWYw8=
-github.com/vgmdj/utils v0.0.0-20180831013845-ab3d43099570/go.mod h1:4N+hRsVxde6uc6Q4KPsi9mqId5HWSrqZvRI5OVt50Os=
-github.com/vgmdj/utils v0.0.0-20180831015934-9e366c2c797f h1:HQqAOK1ZtTNKA2fFFFagKb0kMCnMuutbnGvVqQDjEuQ=
-github.com/vgmdj/utils v0.0.0-20180831015934-9e366c2c797f/go.mod h1:4N+hRsVxde6uc6Q4KPsi9mqId5HWSrqZvRI5OVt50Os=
-github.com/vgmdj/utils v0.0.0-20180831024316-605a89d4a411 h1:uODNmuoBXN6Df55whnCeskDghd/Mc/ZUIXm8425DKSY=
-github.com/vgmdj/utils v0.0.0-20180831024316-605a89d4a411/go.mod h1:4N+hRsVxde6uc6Q4KPsi9mqId5HWSrqZvRI5OVt50Os=
+github.com/vgmdj/utils v0.0.0-20180903063029-3bc02eb46a59 h1:y6UsEKe8JnVL3W3+ju9yr1cb5/Pi4pVdlylSQY5m1UE=
+github.com/vgmdj/utils v0.0.0-20180903063029-3bc02eb46a59/go.mod h1:4N+hRsVxde6uc6Q4KPsi9mqId5HWSrqZvRI5OVt50Os=
 golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac h1:7d7lG9fHOLdL6jZPtnV4LpI41SbohIJ1Atq7U991dMg=
 golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 gopkg.in/chanxuehong/wechat.v2 v2.0.0-20180803114548-d901fc2b67e4/go.mod h1:HuIcE5yEmuAHBXNX5U4KUQRCki6sXCbLjPauW+ppvI0=
