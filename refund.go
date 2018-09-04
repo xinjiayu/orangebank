@@ -1,6 +1,8 @@
 package orangebank
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -10,7 +12,6 @@ import (
 )
 
 type RefundRequest struct {
-	SignType      string //加密类型RSA或RSA2
 	OutNo         string //原始订单号
 	RefundOutNo   string //退款订单号
 	RefundOutName string //退款订单名称
@@ -44,7 +45,7 @@ type RefundData struct {
 	TradeTime     string
 }
 
-func (rr *RefundResp) parse(privateKey []byte, values map[string]interface{}) (err error) {
+func (rr *RefundResp) parse(openKey string, privateKey []byte, values map[string]interface{}) (err error) {
 	logger.Info(values)
 
 	rr.ErrCode = chars.ToInt(values["errcode"])
@@ -54,7 +55,7 @@ func (rr *RefundResp) parse(privateKey []byte, values map[string]interface{}) (e
 	data := chars.ToString(values["data"])
 	logger.Info(data)
 
-	rsa := NewRSA(nil, privateKey)
+	rsa := NewRSA(openKey, nil, privateKey)
 	m, err := rsa.Decrypt(data)
 	if err != nil {
 		logger.Error(m)
@@ -84,10 +85,13 @@ func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error)
 	m["trade_result"] = req.TradeResult
 	m["tml_token"] = req.TmlToken
 	m["remark"] = req.Remark
-	m["shop_pass"] = req.ShopPass
 
-	rsa := NewRSA(c.publicKey, c.privateKey)
-	data, err := rsa.Encrypt(m)
+	s1 := sha1.New()
+	s1.Write([]byte(req.ShopPass))
+	m["shop_pass"] = hex.EncodeToString(s1.Sum(nil))
+
+	aes := NewAES(c.openKey)
+	data, err := aes.Encrypt(m)
 	if err != nil {
 		logger.Error(err.Error())
 		return
@@ -99,15 +103,24 @@ func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error)
 	d["timestamp"] = chars.ToString(time.Now().Unix())
 	d["sign_type"] = "RSA"
 
+	rsa := NewRSA(c.openKey, c.publicKey, c.privateKey)
+	sign, err := rsa.Sign(d)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	d["sign"] = sign
+
 	resp := make(map[string]interface{})
-	err = httplib.PostForm(fmt.Sprintf("%s%s", c.BaseURL(), "payorder"), c.format(d), &resp,
+	err = httplib.PostForm(fmt.Sprintf("%s%s", c.BaseURL(), "payrefund"), c.format(d), &resp,
 		map[string]string{httplib.ResponseResultContentType: "application/json"})
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
 
-	err = refundResp.parse(c.privateKey, resp)
+	err = refundResp.parse(c.openKey, c.privateKey, resp)
 	if err != nil {
 		logger.Error(err.Error())
 		return

@@ -5,7 +5,8 @@ import (
 )
 
 func TestConifg(t *testing.T) {
-	client := NewClient("73b24f53ffc64486eb40d606456fb04d", "7386072b1f94fdd7acaae83cd0f0f1c1", EnvDEV)
+	client := NewClient("73b24f53ffc64486eb40d606456fb04d", "7386072b1f94fdd7acaae83cd0f0f1c1", EnvDEV,
+		nil, nil)
 
 	conf := ConfigRequest{
 		PmtTag:   TagWeiXin,

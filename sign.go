@@ -44,14 +44,14 @@ func (s Sign) ToSign(Values map[string]interface{}) string {
 		str = fmt.Sprintf("%s&%s=%v", str, v, Values[v])
 	}
 
+	delete(Values, "open_key")
+
 	s1 := sha1.New()
 	io.WriteString(s1, str)
 	s1Sign := s1.Sum(nil)
 
 	m5 := md5.New()
 	io.WriteString(m5, hex.EncodeToString(s1Sign))
-
-	delete(Values, "open_key")
 
 	logger.Info(str, hex.EncodeToString(s1Sign), hex.EncodeToString(m5.Sum(nil)))
 
@@ -121,19 +121,22 @@ func (aes *AES) Decrypt(cipherText string) (map[string]interface{}, error) {
 
 //RSA RSA
 type RSA struct {
+	openKey    string
 	publicKey  []byte
 	privateKey []byte
 }
 
 //NewRSA RSA类初始化
-func NewRSA(publicKey, privateKey []byte) *RSA {
+func NewRSA(openKey string, publicKey, privateKey []byte) *RSA {
 	return &RSA{
 		publicKey:  publicKey,
 		privateKey: privateKey,
+		openKey:    openKey,
 	}
 }
 
-func (rsa *RSA) Encrypt(Values map[string]interface{}) (data string, err error) {
+func (rsa *RSA) Sign(Values map[string]interface{}) (data string, err error) {
+	Values["open_key"] = rsa.openKey
 	var keys []string
 	for k := range Values {
 		keys = append(keys, k)
@@ -149,11 +152,15 @@ func (rsa *RSA) Encrypt(Values map[string]interface{}) (data string, err error) 
 		str = fmt.Sprintf("%s&%s=%v", str, v, Values[v])
 	}
 
-	cipherText, err := encrypt.RsaEncrypt([]byte(str), rsa.publicKey)
+	delete(Values, "open_key")
+
+	cipherText, err := encrypt.RsaSign([]byte(str), rsa.privateKey)
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
+
+	logger.Info(str, hex.EncodeToString(cipherText))
 
 	return hex.EncodeToString(cipherText), nil
 }

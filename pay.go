@@ -72,7 +72,15 @@ type PayData struct {
 func (pr *PayResponse) parse(key string, values map[string]interface{}) (err error) {
 	logger.Info(values)
 
-	pr.Sign = chars.ToString(values["sign"])
+	vs, ok := values["sign"]
+	if !ok {
+		ec, ok := values["errcode"]
+		if !ok || chars.ToInt(ec) == 0 {
+			return fmt.Errorf("数据返回异常")
+		}
+	}
+
+	pr.Sign = chars.ToString(vs)
 	sign := NewSign(key)
 	delete(values, "sign")
 	if pr.Sign != sign.ToSign(values) {

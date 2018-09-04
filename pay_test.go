@@ -5,10 +5,11 @@ import (
 )
 
 func TestClient_PayOrder(t *testing.T) {
-	client := NewClient("73b24f53ffc64486eb40d606456fb04d", "7386072b1f94fdd7acaae83cd0f0f1c1", EnvDEV)
+	client := NewClient("73b24f53ffc64486eb40d606456fb04d", "7386072b1f94fdd7acaae83cd0f0f1c1", EnvDEV,
+		nil, nil)
 
 	pr := PayRequest{
-		OutNO:          "outno1234567898",
+		OutNO:          "test0000000001",
 		PmtTag:         TagWeiXin,
 		OrdName:        "ord支付",
 		OriginalAmount: 10000,
