@@ -1,29 +1,24 @@
 package orangebank
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 
-	"github.com/vgmdj/utils/chars"
 	"github.com/vgmdj/utils/logger"
 )
 
 type PayCallBack struct {
-	ErrCode     int    `json:"errcode"`
-	Msg         string `json:"msg"`
-	Data        string `json:"data"`
-	Timestamp   string `json:"timestamp"`
-	TradeType   string `json:"trade_type"`
-	OrdNo       string `json:"ord_no"`
-	OutNo       string `json:"out_no"`
-	Status      string `json:"status"`
-	Amount      string `json:"amount"`
-	PayTime     string `json:"pay_time"`
-	RandStr     string `json:"rand_str"`
-	Sign        string `json:"sign"`
-	TradeResult string `json:"trade_result"`
-	OpenID      string `json:"open_id"`
+	Timestamp   string
+	OrdNo       string
+	OutNo       string
+	Status      string
+	Amount      string
+	PayTime     string
+	RandStr     string
+	Sign        string
+	TradeResult string
+	OpenID      string
 }
 
 const (
@@ -31,31 +26,29 @@ const (
 )
 
 func (c *Client) ParseCallBack(body []byte) (pcb PayCallBack, err error) {
-	err = json.Unmarshal(body, &pcb)
-	if err != nil {
-		logger.Error(err.Error())
-		return
+	values, err := url.ParseQuery(string(body))
+
+	m := make(map[string]string)
+	for k, v := range values {
+		if len(v) > 0 {
+			m[k] = v[0]
+		}
+		logger.Info(k)
 	}
 
-	aes := NewAES(c.openKey)
-	m, err := aes.Decrypt(pcb.Data)
-	if err != nil {
-		logger.Error(err.Error())
-		return
-	}
+	pcb.OrdNo = m["ord_no"]
+	pcb.OutNo = m["out_no"]
+	pcb.Status = m["status"]
+	pcb.Amount = m["amount"]
+	pcb.PayTime = m["pay_time"]
+	pcb.RandStr = m["rand_str"]
+	pcb.Sign = m["sign"]
+	pcb.TradeResult = m["trade_result"]
+	pcb.OpenID = m["open_id"]
 
-	pcb.TradeType = chars.ToString(m["trade_type"])
-	pcb.OrdNo = chars.ToString(m["ord_no"])
-	pcb.OutNo = chars.ToString(m["out_no"])
-	pcb.Status = chars.ToString(m["status"])
-	pcb.Amount = chars.ToString(m["amount"])
-	pcb.PayTime = chars.ToString(m["pay_time"])
-	pcb.RandStr = chars.ToString(m["rand_str"])
-	pcb.Sign = chars.ToString(m["sign"])
-	pcb.TradeResult = chars.ToString(m["trade_result"])
-	pcb.OpenID = chars.ToString(m["open_id"])
+	delete(m, "sign")
 
-	err = pcb.CheckSign(c.openKey)
+	err = pcb.CheckSign(c.openKey, m)
 	if err != nil {
 		logger.Error(err.Error())
 		return
@@ -65,21 +58,14 @@ func (c *Client) ParseCallBack(body []byte) (pcb PayCallBack, err error) {
 
 }
 
-func (pcb *PayCallBack) CheckSign(openKey string) (err error) {
-	m := make(map[string]interface{})
-	m["trade_type"] = pcb.TradeType
-	m["ord_no"] = pcb.OrdNo
-	m["out_no"] = pcb.OutNo
-	m["status"] = pcb.Status
-	m["amount"] = pcb.Amount
-	m["pay_time"] = pcb.PayTime
-	m["rand_str"] = pcb.RandStr
-	m["trade_result"] = pcb.TradeResult
-	m["open_id"] = pcb.OpenID
-	m["timestamp"] = pcb.Timestamp
+func (pcb *PayCallBack) CheckSign(openKey string, m map[string]string) (err error) {
+	cm := make(map[string]interface{})
+	for k, v := range m {
+		cm[k] = v
+	}
 
 	sign := NewSign(openKey)
-	check := sign.ToSign(m)
+	check := sign.ToSign(cm)
 	if pcb.Sign != check {
 		logger.Error(fmt.Sprintf("check sign error , %s not match %s", pcb.Sign, check))
 		return errors.New(fmt.Sprintf("check sign error , %s not match %s", pcb.Sign, check))

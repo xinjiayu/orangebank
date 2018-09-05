@@ -109,6 +109,9 @@ func (aes *AES) Decrypt(cipherText string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
+
+	logger.Info(string(data))
+
 	m := make(map[string]interface{})
 	err = json.Unmarshal(data, &m)
 	if err != nil {
