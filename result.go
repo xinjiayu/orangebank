@@ -30,18 +30,18 @@ const (
 	CallBackNotifySuccess = "notify_success"
 )
 
-func (pcb *PayCallBack) Parse(body []byte, openKey string) (err error) {
-	err = json.Unmarshal(body, pcb)
+func (c *Client) ParseCallBack(body []byte) (pcb PayCallBack, err error) {
+	err = json.Unmarshal(body, &pcb)
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
 
-	aes := NewAES(openKey)
+	aes := NewAES(c.openKey)
 	m, err := aes.Decrypt(pcb.Data)
 	if err != nil {
 		logger.Error(err.Error())
-		return err
+		return
 	}
 
 	pcb.TradeType = chars.ToString(m["trade_type"])
@@ -55,7 +55,13 @@ func (pcb *PayCallBack) Parse(body []byte, openKey string) (err error) {
 	pcb.TradeResult = chars.ToString(m["trade_result"])
 	pcb.OpenID = chars.ToString(m["open_id"])
 
-	return pcb.CheckSign(openKey)
+	err = pcb.CheckSign(c.openKey)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	return
 
 }
 

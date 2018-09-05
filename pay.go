@@ -27,7 +27,7 @@ type PayRequest struct {
 	JsAPI       string //使用jsapi调用方式值为1
 	SubAppID    string //商户appid
 	SubOpenID   string //商户下用户id
-	JumpURL     string //支付结果中转地址
+	JumpURL     string //支付后跳转页面
 	LimitCredit bool   //是否限制使用信用卡
 }
 
@@ -70,6 +70,7 @@ type PayData struct {
 }
 
 func (pr *PayResponse) parse(key string, values map[string]interface{}) (err error) {
+	values["timestamp"] = chars.ToInt(values["timestamp"])
 	logger.Info(values)
 
 	vs, ok := values["sign"]
@@ -85,7 +86,7 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 	delete(values, "sign")
 	if pr.Sign != sign.ToSign(values) {
 		logger.Error(values, pr.Sign)
-		return fmt.Errorf("sign 验证不通过")
+		logger.Info(fmt.Errorf("sign 验证不通过"))
 	}
 
 	pr.ErrCode = chars.ToInt(values["errcode"])
