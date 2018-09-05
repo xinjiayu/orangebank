@@ -53,7 +53,11 @@ func (rr *RefundResp) parse(openKey string, privateKey []byte, values map[string
 	rr.TimeStamp = int64(chars.ToInt(values["timestamp"]))
 
 	data := chars.ToString(values["data"])
-	logger.Info(data)
+
+	if data == "" {
+		logger.Info(values)
+		return
+	}
 
 	rsa := NewRSA(openKey, nil, privateKey)
 	m, err := rsa.Decrypt(data)
@@ -81,10 +85,10 @@ func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error)
 	m["refund_out_no"] = req.RefundOutNo
 	m["refund_ord_name"] = req.RefundOutName
 	m["refund_amount"] = req.RefundAmount
-	m["trade_account"] = req.TradeAccount
-	m["trade_result"] = req.TradeResult
-	m["tml_token"] = req.TmlToken
-	m["remark"] = req.Remark
+	//m["trade_account"] = req.TradeAccount
+	//m["trade_result"] = req.TradeResult
+	//m["tml_token"] = req.TmlToken
+	//m["remark"] = req.Remark
 
 	s1 := sha1.New()
 	s1.Write([]byte(req.ShopPass))

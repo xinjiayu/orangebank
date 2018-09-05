@@ -33,7 +33,6 @@ func (c *Client) ParseCallBack(body []byte) (pcb PayCallBack, err error) {
 		if len(v) > 0 {
 			m[k] = v[0]
 		}
-		logger.Info(k)
 	}
 
 	pcb.OrdNo = m["ord_no"]

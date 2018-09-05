@@ -9,7 +9,7 @@ func TestClient_PayOrder(t *testing.T) {
 		nil, nil)
 
 	pr := PayRequest{
-		OutNO:          "test0000000001",
+		OutNO:          "2018090596025907",
 		PmtTag:         TagWeiXin,
 		OrdName:        "ord支付",
 		OriginalAmount: 10000,
