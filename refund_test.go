@@ -48,3 +48,18 @@ WvdDEvhehuV6kub3i8KEvH8=
 	t.Error(resp, err)
 
 }
+
+func TestRefundQuery(t *testing.T) {
+
+	client := NewClient("3fcba3858214ed9e74056bf395a3519e",
+		"252dec9c5c3279d83feb3653c3db545b", EnvPRO, nil, nil)
+
+	resp ,err := client.PayRefundQuery("2018090596025907")
+	if err != nil{
+		t.Error(err.Error())
+	}
+
+	t.Log(resp)
+
+
+}

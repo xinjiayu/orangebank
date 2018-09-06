@@ -85,10 +85,7 @@ func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error)
 	m["refund_out_no"] = req.RefundOutNo
 	m["refund_ord_name"] = req.RefundOutName
 	m["refund_amount"] = req.RefundAmount
-	//m["trade_account"] = req.TradeAccount
-	//m["trade_result"] = req.TradeResult
-	//m["tml_token"] = req.TmlToken
-	//m["remark"] = req.Remark
+	m["remark"] = req.Remark
 
 	s1 := sha1.New()
 	s1.Write([]byte(req.ShopPass))
@@ -125,6 +122,106 @@ func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error)
 	}
 
 	err = refundResp.parse(c.openKey, c.privateKey, resp)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	return
+}
+
+type RefundQueryResp struct {
+	ErrCode   int
+	Msg       string
+	Sign      string
+	Timestamp int64
+	Data      RefundQueryRespData
+}
+
+type RefundQueryRespData struct {
+	RefundOrdNo string
+	RefundOutNo int
+	TradeAmount int
+	Status      string
+	TradeResult string
+}
+
+func (rqr *RefundQueryResp) parse(key string, values map[string]interface{}) (err error) {
+	values["timestamp"] = chars.ToInt(values["timestamp"])
+	logger.Info(values)
+
+	rqr.ErrCode = chars.ToInt(values["errcode"])
+	rqr.Msg = chars.ToString(values["msg"])
+	rqr.Timestamp = int64(chars.ToInt(values["timestamp"]))
+
+	vs, ok := values["sign"]
+	if !ok {
+		ec, ok := values["errcode"]
+		if !ok || chars.ToInt(ec) == 0 {
+			return fmt.Errorf("数据返回异常")
+		}
+
+		return
+
+	}
+
+	rqr.Sign = chars.ToString(vs)
+	sign := NewSign(key)
+	delete(values, "sign")
+	if rqr.Sign != sign.ToSign(values) {
+		logger.Error(values, rqr.Sign)
+		logger.Info(fmt.Errorf("sign 验证不通过"))
+	}
+
+	data := chars.ToString(values["data"])
+	logger.Info(data)
+
+	aes := NewAES(key)
+	m, err := aes.Decrypt(data)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	logger.Info(m)
+
+	rqr.Data.RefundOutNo = chars.ToInt(values["refund_out_no"])
+	rqr.Data.RefundOrdNo = chars.ToString(values["refund_ord_no"])
+	rqr.Data.TradeAmount = chars.ToInt(values["trade_amount"])
+	rqr.Data.Status = chars.ToString(values["status"])
+	rqr.Data.TradeResult = chars.ToString(values["trade_result"])
+
+	return
+}
+
+func (c *Client) PayRefundQuery(outNo string) (rqResp RefundQueryResp, err error) {
+	m := make(map[string]interface{})
+	m["refund_out_no"] = outNo
+
+	aes := NewAES(c.openKey)
+	data, err := aes.Encrypt(m)
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	d := make(map[string]interface{})
+	d["data"] = data
+	d["open_id"] = c.openID
+	d["timestamp"] = chars.ToString(time.Now().Unix())
+
+	sign := NewSign(c.openKey)
+	d["sign"] = sign.ToSign(d)
+
+	resp := make(map[string]interface{})
+	err = httplib.PostForm(fmt.Sprintf("%s%s", c.BaseURL(), "payrefundquery"), c.format(d), &resp,
+		map[string]string{httplib.ResponseResultContentType: "application/json"})
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
+	err = rqResp.parse(c.openKey, resp)
 	if err != nil {
 		logger.Error(err.Error())
 		return
