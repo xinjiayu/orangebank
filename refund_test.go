@@ -34,17 +34,14 @@ qFNIDGcFBGqCyeCaGx4E1WuP0R7y1SFM2miGnbl+te89ZLSzSudoeFq/qS8S3W+M
 WvdDEvhehuV6kub3i8KEvH8=
 -----END PRIVATE KEY-----`)
 
-	//client := NewClient("73b24f53ffc64486eb40d606456fb04d", "7386072b1f94fdd7acaae83cd0f0f1c1", EnvDEV,
-	//	nil, privateKey)
-
-	client := NewClient("3fcba3858214ed9e74056bf395a3519e",
-		"252dec9c5c3279d83feb3653c3db545b", EnvPRO, nil, privateKey)
+	client := NewClient("73b24f53ffc64486eb40d606456fb04d", "7386072b1f94fdd7acaae83cd0f0f1c1", EnvDEV,
+		nil, privateKey)
 
 	req := RefundRequest{
-		OutNo:         "2018090596025907",
-		RefundOutNo:   "0000000000000001",
-		RefundAmount:  50,
-		ShopPass:      "123456",
+		OutNo:        "2018090596025907",
+		RefundOutNo:  "0000000000000001",
+		RefundAmount: 50,
+		ShopPass:     "123456",
 	}
 
 	resp, err := client.PayRefund(req)
