@@ -13,6 +13,7 @@ type ConfigRequest struct {
 	PmtTag         PmtTag
 	SubAppID       string
 	SubscribeAppID string
+	JsAPIPath      string
 }
 
 func (c *Client) ConfigAdd(req ConfigRequest) (err error) {
@@ -20,6 +21,7 @@ func (c *Client) ConfigAdd(req ConfigRequest) (err error) {
 	m["pmt_tag"] = req.PmtTag.ToString(c.env)
 	m["sub_appid"] = req.SubAppID
 	m["subscribe_appid"] = req.SubscribeAppID
+	m["jsapi_path"] = req.JsAPIPath
 
 	aes := NewAES(c.openKey)
 	data, err := aes.Encrypt(m)
