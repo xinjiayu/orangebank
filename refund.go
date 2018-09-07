@@ -47,7 +47,7 @@ type RefundData struct {
 }
 
 func (rr *RefundResp) parse(openKey string, privateKey []byte, values map[string]interface{}) (err error) {
-	logger.Info(values)
+	values["timestamp"] = chars.ToInt(values["timestamp"])
 
 	rr.ErrCode = chars.ToInt(values["errcode"])
 	rr.Msg = chars.ToString(values["msg"])

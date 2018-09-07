@@ -57,8 +57,6 @@ func (s Sign) ToSign(Values map[string]interface{}) string {
 	m5 := md5.New()
 	io.WriteString(m5, hex.EncodeToString(s1Sign))
 
-	logger.Info(str, hex.EncodeToString(s1Sign), hex.EncodeToString(m5.Sum(nil)))
-
 	return fmt.Sprintf("%x", m5.Sum(nil))
 
 }
@@ -77,7 +75,6 @@ func NewAES(openKey string) *AES {
 
 //Encrypt 加密
 func (aes *AES) Encrypt(Values map[string]interface{}) (data string, err error) {
-	logger.Info(Values)
 
 	text, err := json.Marshal(Values)
 	if err != nil {
@@ -93,8 +90,6 @@ func (aes *AES) Encrypt(Values map[string]interface{}) (data string, err error) 
 	}
 
 	data = hex.EncodeToString(tmp)
-
-	logger.Info(string(text), data)
 
 	return
 }
@@ -112,8 +107,6 @@ func (aes *AES) Decrypt(cipherText string) (map[string]interface{}, error) {
 		logger.Error(err.Error())
 		return nil, err
 	}
-
-	logger.Info(string(data))
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(data, &m)
