@@ -26,9 +26,10 @@ type RefundRequest struct {
 
 type RefundResp struct {
 	ErrCode   int
-	TimeStamp int64
+	Timestamp int
 	Msg       string
 	Data      RefundData
+	Sign      string
 }
 
 type RefundData struct {
@@ -50,7 +51,8 @@ func (rr *RefundResp) parse(openKey string, privateKey []byte, values map[string
 
 	rr.ErrCode = chars.ToInt(values["errcode"])
 	rr.Msg = chars.ToString(values["msg"])
-	rr.TimeStamp = int64(chars.ToInt(values["timestamp"]))
+	rr.Timestamp = chars.ToInt(values["timestamp"])
+	rr.Sign = chars.ToString(values["sign"])
 
 	data := chars.ToString(values["data"])
 
@@ -59,8 +61,14 @@ func (rr *RefundResp) parse(openKey string, privateKey []byte, values map[string
 		return
 	}
 
-	rsa := NewRSA(openKey, nil, privateKey)
-	m, err := rsa.Decrypt(data)
+	sign := NewSign(openKey)
+	if rr.Sign != sign.ToSign(values) {
+		logger.Error(values, rr.Sign, sign.ToSign(values))
+		return fmt.Errorf("退款签名认证不通过")
+	}
+
+	aes := NewAES(openKey)
+	m, err := aes.Decrypt(data)
 	if err != nil {
 		logger.Error(m)
 		return

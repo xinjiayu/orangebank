@@ -37,6 +37,10 @@ func (s Sign) ToSign(Values map[string]interface{}) string {
 
 	var str string
 	for k, v := range keys {
+		if v == "sign" {
+			continue
+		}
+
 		if k == 0 {
 			str = fmt.Sprintf("%s=%v", v, Values[v])
 			continue
@@ -109,7 +113,6 @@ func (aes *AES) Decrypt(cipherText string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-
 	logger.Info(string(data))
 
 	m := make(map[string]interface{})
@@ -169,7 +172,9 @@ func (rsa *RSA) Sign(Values map[string]interface{}) (data string, err error) {
 }
 
 func (rsa *RSA) Decrypt(cipherText string) (data map[string]interface{}, err error) {
-	plainText, err := encrypt.RsaDecrypt([]byte(cipherText), rsa.privateKey)
+	bct, err := hex.DecodeString(cipherText)
+
+	plainText, err := encrypt.RsaDecrypt(bct, rsa.privateKey)
 	if err != nil {
 		logger.Error(err.Error())
 		return
