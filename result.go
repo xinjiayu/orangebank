@@ -8,6 +8,7 @@ import (
 	"github.com/vgmdj/utils/logger"
 )
 
+//PayCallBack 支付回复
 type PayCallBack struct {
 	Timestamp   string
 	OrdNo       string
@@ -22,9 +23,11 @@ type PayCallBack struct {
 }
 
 const (
+	//CallBackNotifySuccess 支付回复确认
 	CallBackNotifySuccess = "notify_success"
 )
 
+//ParseCallBack 支付回复数据解析
 func (c *Client) ParseCallBack(body []byte) (pcb PayCallBack, err error) {
 	values, err := url.ParseQuery(string(body))
 
@@ -57,6 +60,7 @@ func (c *Client) ParseCallBack(body []byte) (pcb PayCallBack, err error) {
 
 }
 
+//CheckSign 支付回复验签
 func (pcb *PayCallBack) CheckSign(openKey string, m map[string]string) (err error) {
 	cm := make(map[string]interface{})
 	for k, v := range m {

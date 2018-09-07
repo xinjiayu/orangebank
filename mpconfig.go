@@ -9,13 +9,15 @@ import (
 	"github.com/vgmdj/utils/logger"
 )
 
+//ConfigRequest 配置请求
 type ConfigRequest struct {
-	PmtTag         PmtTag
-	SubAppID       string
-	SubscribeAppID string
-	JsAPIPath      string
+	PmtTag         PmtTag //标签
+	SubAppID       string //相关联appid，三选一配置
+	SubscribeAppID string //推荐关注公众号
+	JsAPIPath      string //安全支付域名
 }
 
+//ConfigAdd 配置
 func (c *Client) ConfigAdd(req ConfigRequest) (err error) {
 	m := make(map[string]interface{})
 	m["pmt_tag"] = req.PmtTag.ToString(c.env)
@@ -51,6 +53,7 @@ func (c *Client) ConfigAdd(req ConfigRequest) (err error) {
 	return
 }
 
+//ConfigQuery 配置查询
 func (c *Client) ConfigQuery(tag PmtTag) (err error) {
 	m := make(map[string]interface{})
 	m["pmt_tag"] = tag.ToString(c.env)

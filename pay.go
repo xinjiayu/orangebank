@@ -23,12 +23,11 @@ type PayRequest struct {
 	TradeNO        string //交易号，可为空
 	Remark         string //订单备注，可为空
 	Tag            string //订单附加数据，可为空
-
-	JsAPI       string //使用jsapi调用方式值为1
-	SubAppID    string //商户appid
-	SubOpenID   string //商户下用户id
-	JumpURL     string //支付后跳转页面
-	LimitCredit bool   //是否限制使用信用卡
+	JsAPI          string //使用jsapi调用方式值为1
+	SubAppID       string //商户appid
+	SubOpenID      string //商户下用户id
+	JumpURL        string //支付后跳转页面
+	LimitCredit    bool   //是否限制使用信用卡
 }
 
 //PayResponse 下单回复
@@ -69,6 +68,7 @@ type PayData struct {
 	PaySign        string
 }
 
+//parse 支付data解析
 func (pr *PayResponse) parse(key string, values map[string]interface{}) (err error) {
 	values["timestamp"] = chars.ToInt(values["timestamp"])
 	logger.Info(values)
@@ -87,6 +87,7 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 	if pr.Sign != sign.ToSign(values) {
 		logger.Error(values, pr.Sign)
 		logger.Info(fmt.Errorf("sign 验证不通过"))
+		return
 	}
 
 	pr.ErrCode = chars.ToInt(values["errcode"])
@@ -94,7 +95,6 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 	pr.TimeStamp = int64(chars.ToInt(values["timestamp"]))
 
 	data := chars.ToString(values["data"])
-	logger.Info(data)
 
 	aes := NewAES(key)
 	m, err := aes.Decrypt(data)
@@ -102,8 +102,6 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 		logger.Error(err.Error())
 		return
 	}
-
-	logger.Info(m)
 
 	pr.Data.PmtTag = chars.ToString(m["pmt_tag"])
 	pr.Data.PmtName = chars.ToString(m["pmt_name"])

@@ -125,7 +125,7 @@ type RSA struct {
 	privateKey []byte
 }
 
-//NewRSA RSA类初始化
+//NewRSA RSA初始化
 func NewRSA(openKey string, publicKey, privateKey []byte) *RSA {
 	return &RSA{
 		publicKey:  publicKey,
@@ -134,6 +134,7 @@ func NewRSA(openKey string, publicKey, privateKey []byte) *RSA {
 	}
 }
 
+//Sign 私钥签名
 func (rsa *RSA) Sign(Values map[string]interface{}) (data string, err error) {
 	Values["open_key"] = rsa.openKey
 	var keys []string
@@ -159,11 +160,10 @@ func (rsa *RSA) Sign(Values map[string]interface{}) (data string, err error) {
 		return
 	}
 
-	logger.Info(str, hex.EncodeToString(cipherText))
-
 	return hex.EncodeToString(cipherText), nil
 }
 
+//Decrypt 私钥解密
 func (rsa *RSA) Decrypt(cipherText string) (data map[string]interface{}, err error) {
 	bct, err := hex.DecodeString(cipherText)
 
@@ -173,15 +173,11 @@ func (rsa *RSA) Decrypt(cipherText string) (data map[string]interface{}, err err
 		return
 	}
 
-	logger.Info(string(plainText))
-
 	err = json.Unmarshal(plainText, &data)
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
-
-	logger.Info(data)
 
 	return
 }

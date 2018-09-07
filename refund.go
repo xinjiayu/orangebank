@@ -11,6 +11,7 @@ import (
 	"github.com/vgmdj/utils/logger"
 )
 
+//RefundRequest 退款请求
 type RefundRequest struct {
 	OutNo         string //原始订单号
 	RefundOutNo   string //退款订单号
@@ -24,6 +25,7 @@ type RefundRequest struct {
 	ShopPass      string //主管密码
 }
 
+//RefundResp 退款回复
 type RefundResp struct {
 	ErrCode   int
 	Timestamp int
@@ -32,6 +34,7 @@ type RefundResp struct {
 	Sign      string
 }
 
+//RefundData 退款回复关键数据
 type RefundData struct {
 	OrdNo         string
 	OrdShopID     int
@@ -46,6 +49,7 @@ type RefundData struct {
 	TradeTime     string
 }
 
+//parse 退款回复关键数据解析
 func (rr *RefundResp) parse(openKey string, privateKey []byte, values map[string]interface{}) (err error) {
 	values["timestamp"] = chars.ToInt(values["timestamp"])
 
@@ -87,6 +91,7 @@ func (rr *RefundResp) parse(openKey string, privateKey []byte, values map[string
 	return
 }
 
+//PayRefund 退款
 func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error) {
 	m := make(map[string]interface{})
 	m["out_no"] = req.OutNo
@@ -138,6 +143,7 @@ func (c *Client) PayRefund(req RefundRequest) (refundResp RefundResp, err error)
 	return
 }
 
+//RefundQueryResp 退款订单查询
 type RefundQueryResp struct {
 	ErrCode   int
 	Msg       string
@@ -146,6 +152,7 @@ type RefundQueryResp struct {
 	Data      RefundQueryRespData
 }
 
+//RefundQueryRespData 退款查询回复
 type RefundQueryRespData struct {
 	RefundOrdNo string
 	RefundOutNo int
@@ -154,6 +161,7 @@ type RefundQueryRespData struct {
 	TradeResult string
 }
 
+//parse 退款查询回复解析
 func (rqr *RefundQueryResp) parse(key string, values map[string]interface{}) (err error) {
 	values["timestamp"] = chars.ToInt(values["timestamp"])
 	logger.Info(values)
@@ -182,7 +190,6 @@ func (rqr *RefundQueryResp) parse(key string, values map[string]interface{}) (er
 	}
 
 	data := chars.ToString(values["data"])
-	logger.Info(data)
 
 	aes := NewAES(key)
 	m, err := aes.Decrypt(data)
@@ -191,17 +198,16 @@ func (rqr *RefundQueryResp) parse(key string, values map[string]interface{}) (er
 		return
 	}
 
-	logger.Info(m)
-
-	rqr.Data.RefundOutNo = chars.ToInt(values["refund_out_no"])
-	rqr.Data.RefundOrdNo = chars.ToString(values["refund_ord_no"])
-	rqr.Data.TradeAmount = chars.ToInt(values["trade_amount"])
-	rqr.Data.Status = chars.ToString(values["status"])
-	rqr.Data.TradeResult = chars.ToString(values["trade_result"])
+	rqr.Data.RefundOutNo = chars.ToInt(m["refund_out_no"])
+	rqr.Data.RefundOrdNo = chars.ToString(m["refund_ord_no"])
+	rqr.Data.TradeAmount = chars.ToInt(m["trade_amount"])
+	rqr.Data.Status = chars.ToString(m["status"])
+	rqr.Data.TradeResult = chars.ToString(m["trade_result"])
 
 	return
 }
 
+//PayRefundQuery 退款查询
 func (c *Client) PayRefundQuery(outNo string) (rqResp RefundQueryResp, err error) {
 	m := make(map[string]interface{})
 	m["refund_out_no"] = outNo
