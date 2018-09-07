@@ -1,7 +1,6 @@
 package orangebank
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -71,7 +70,7 @@ func (pcb *PayCallBack) CheckSign(openKey string, m map[string]string) (err erro
 	check := sign.ToSign(cm)
 	if pcb.Sign != check {
 		logger.Error(fmt.Sprintf("check sign error , %s not match %s", pcb.Sign, check))
-		return errors.New(fmt.Sprintf("check sign error , %s not match %s", pcb.Sign, check))
+		return fmt.Errorf("check sign error , %s not match %s", pcb.Sign, check)
 	}
 
 	return
