@@ -94,6 +94,11 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 	pr.Msg = chars.ToString(values["msg"])
 	pr.TimeStamp = int64(chars.ToInt(values["timestamp"]))
 
+	if _, ok := values["data"]; !ok {
+		logger.Error(values)
+		return
+	}
+
 	data := chars.ToString(values["data"])
 
 	aes := NewAES(key)
