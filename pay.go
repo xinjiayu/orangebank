@@ -86,8 +86,7 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 	delete(values, "sign")
 	if pr.Sign != sign.ToSign(values) {
 		logger.Error(values, pr.Sign)
-		logger.Info(fmt.Errorf("sign 验证不通过"))
-		return
+		return fmt.Errorf("sign 验证不通过")
 	}
 
 	pr.ErrCode = chars.ToInt(values["errcode"])
@@ -96,7 +95,7 @@ func (pr *PayResponse) parse(key string, values map[string]interface{}) (err err
 
 	if _, ok := values["data"]; !ok {
 		logger.Error(values)
-		return
+		return fmt.Errorf("no data")
 	}
 
 	data := chars.ToString(values["data"])
