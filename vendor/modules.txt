@@ -1,0 +1,20 @@
+# github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
+github.com/axgle/mahonia
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/stretchr/testify v1.2.2
+github.com/stretchr/testify/assert
+# github.com/vgmdj/gb2260 v0.0.0-20180621064901-26fbcc4a270b
+github.com/vgmdj/gb2260/gbdata
+# github.com/vgmdj/utils v0.0.0-20180904022349-15b8fea14cc6
+github.com/vgmdj/utils/chars
+github.com/vgmdj/utils/encrypt
+github.com/vgmdj/utils/httplib
+github.com/vgmdj/utils/logger
+github.com/vgmdj/utils/area
+github.com/vgmdj/utils/logger/logs
+# golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
+golang.org/x/crypto/scrypt
+golang.org/x/crypto/pbkdf2
